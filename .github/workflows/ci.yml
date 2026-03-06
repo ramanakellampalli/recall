@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax check
+        run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js
+
+      - name: Smoke test
+        run: node index.js --version
