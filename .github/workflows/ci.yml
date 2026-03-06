@@ -20,4 +20,4 @@ jobs:
         run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js
 
       - name: Smoke test
-        run: node index.js --version
+        run: node index.js --version | grep -q "recall v"
