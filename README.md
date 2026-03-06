@@ -1,5 +1,8 @@
 # recall
 
+[![npm version](https://img.shields.io/npm/v/recall-dev)](https://www.npmjs.com/package/recall-dev)
+[![npm downloads](https://img.shields.io/npm/dm/recall-dev)](https://www.npmjs.com/package/recall-dev)
+
 **A personal command & snippet memory for developers.**
 
 Stop Googling the same commands. Stop scrolling through shell history. Save once, find instantly.
