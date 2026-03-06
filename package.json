@@ -1,5 +1,5 @@
 {
-  "name": "recall-cli",
+  "name": "@ramanakellampalli/recall",
   "version": "1.0.0",
   "description": "A personal command & snippet memory for developers",
   "main": "index.js",

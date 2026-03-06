@@ -7,7 +7,7 @@ Stop Googling the same commands. Stop scrolling through shell history. Save once
 ## Install
 
 ```bash
-npm install -g recall-cli
+npm install -g @ramanakellampalli/recall
 ```
 
 ## Quick Start
