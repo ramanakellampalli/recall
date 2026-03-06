@@ -10,6 +10,30 @@
 
 Stop Googling the same commands. Stop scrolling through shell history. Save once, find instantly.
 
+## Prerequisites
+
+You need **Node.js v18 or higher** and **npm** installed.
+
+**macOS / Linux — using [nvm](https://github.com/nvm-sh/nvm) (recommended):**
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+nvm install --lts
+```
+
+**macOS — using [Homebrew](https://brew.sh):**
+```bash
+brew install node
+```
+
+**Windows:**
+Download and run the installer from [nodejs.org](https://nodejs.org).
+
+Verify your installation:
+```bash
+node --version   # should print v18 or higher
+npm --version    # should print 9 or higher
+```
+
 ## Install
 
 ```bash
