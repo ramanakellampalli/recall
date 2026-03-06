@@ -1,0 +1,13 @@
+{
+  "name": "recall-cli",
+  "version": "1.0.0",
+  "description": "A personal command & snippet memory for developers",
+  "main": "index.js",
+  "bin": {
+    "recall": "./index.js"
+  },
+  "type": "module",
+  "keywords": ["cli", "developer-tools", "snippets", "commands", "productivity"],
+  "license": "MIT",
+  "dependencies": {}
+}
