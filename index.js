@@ -414,6 +414,10 @@ async function main() {
     case '-h':
       cmdHelp();
       break;
+    case '--version':
+    case '-v':
+      console.log('recall v1.0.1');
+      break;
     default:
       // Treat unknown command as a find query
       cmdFind({ positional: [command, ...positional], flags });
