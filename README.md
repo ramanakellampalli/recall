@@ -2,6 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/recall-dev)](https://www.npmjs.com/package/recall-dev)
 [![npm downloads](https://img.shields.io/npm/dm/recall-dev)](https://www.npmjs.com/package/recall-dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/ramanakellampalli/recall?style=social)](https://github.com/ramanakellampalli/recall)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ramanakellampalli/recall)](https://github.com/ramanakellampalli/recall)
 
 **A personal command & snippet memory for developers.**
 
