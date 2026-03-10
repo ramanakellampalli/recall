@@ -1,6 +1,6 @@
 {
   "name": "recall-dev",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A personal command & snippet memory for developers",
   "main": "index.js",
   "bin": {
@@ -15,5 +15,8 @@
     "productivity"
   ],
   "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "dependencies": {}
 }

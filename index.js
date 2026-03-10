@@ -46,7 +46,7 @@ async function main() {
   const { command, positional, flags } = parseArgs(process.argv);
 
   if (flags.v || flags.version || command === '--version' || command === '-v') {
-    console.log('recall v1.1.1');
+    console.log('recall v1.2.0');
     return;
   }
 

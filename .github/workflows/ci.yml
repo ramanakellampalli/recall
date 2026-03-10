@@ -21,3 +21,6 @@ jobs:
 
       - name: Smoke test
         run: node index.js --version | grep -q "recall v"
+
+      - name: Run tests
+        run: npm test
