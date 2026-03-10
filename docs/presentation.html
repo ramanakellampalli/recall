@@ -129,7 +129,8 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 70px 76px;
+      padding: 64px 76px 80px;
+      justify-content: space-between;
     }
 
     /* ── Slide number badge ── */
@@ -161,16 +162,16 @@
 
     /* ── Typography ── */
     .label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--cyan);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     h1.mega {
-      font-size: 72px;
+      font-size: 96px;
       font-weight: 900;
       line-height: 1;
       letter-spacing: -0.04em;
@@ -179,9 +180,9 @@
     h1.mega span { color: var(--cyan); }
 
     h2.headline {
-      font-size: 52px;
+      font-size: 68px;
       font-weight: 900;
-      line-height: 1.05;
+      line-height: 1.02;
       letter-spacing: -0.03em;
       color: #fff;
     }
@@ -189,15 +190,15 @@
     h2.headline em { color: var(--green); font-style: normal; }
 
     h3.sub-head {
-      font-size: 26px;
+      font-size: 30px;
       font-weight: 700;
       line-height: 1.2;
       color: var(--muted);
-      margin-top: 14px;
+      margin-top: 12px;
     }
 
     .body-text {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 500;
       line-height: 1.65;
       color: var(--muted);
@@ -209,7 +210,7 @@
       height: 4px;
       background: linear-gradient(90deg, var(--cyan), var(--green));
       border-radius: 2px;
-      margin: 24px 0;
+      margin: 20px 0;
     }
 
     /* ── Pill badge ── */
@@ -220,8 +221,8 @@
       background: rgba(6,182,212,0.12);
       border: 1px solid rgba(6,182,212,0.3);
       border-radius: 100px;
-      padding: 8px 18px;
-      font-size: 14px;
+      padding: 12px 24px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--cyan);
       font-family: 'JetBrains Mono', monospace;
@@ -236,13 +237,14 @@
     .code-block {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px 28px;
+      border-radius: 16px;
+      padding: 32px 36px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      line-height: 1.75;
+      font-size: 18px;
+      line-height: 2;
       position: relative;
       overflow: hidden;
+      flex: 1;
     }
     .code-block::before {
       content: '';
@@ -282,40 +284,42 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 28px;
-      margin-top: 10px;
+      justify-content: space-between;
+      flex: 1;
+      margin-top: 8px;
     }
     .pain-list li {
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 600;
       color: var(--text);
       line-height: 1.4;
       display: flex;
       align-items: flex-start;
-      gap: 18px;
+      gap: 20px;
     }
     .pain-list li .emoji {
-      font-size: 26px;
+      font-size: 32px;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
     }
 
     /* ── Feature pillars ── */
     .pillars {
       display: flex;
-      gap: 28px;
-      margin-top: 42px;
+      gap: 24px;
+      flex: 1;
+      margin-top: 24px;
     }
     .pillar {
       flex: 1;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 38px 30px 34px;
+      padding: 44px 32px 40px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 14px;
+      gap: 16px;
       position: relative;
       overflow: hidden;
     }
@@ -330,27 +334,28 @@
     .pillar.p3::after { background: linear-gradient(90deg, #a78bfa, transparent); }
 
     .pillar-icon {
-      font-size: 36px;
+      font-size: 44px;
       line-height: 1;
     }
     .pillar-title {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 800;
       color: #fff;
     }
     .pillar-desc {
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 500;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
     /* ── Persona grid ── */
     .persona-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      margin-top: 44px;
+      gap: 24px;
+      flex: 1;
+      margin-top: 20px;
     }
     .persona-card {
       background: var(--surface);
@@ -359,21 +364,21 @@
       padding: 36px 32px;
       display: flex;
       align-items: flex-start;
-      gap: 20px;
+      gap: 22px;
     }
     .persona-icon {
-      font-size: 38px;
+      font-size: 48px;
       line-height: 1;
       flex-shrink: 0;
     }
     .persona-title {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .persona-desc {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       color: var(--muted);
       line-height: 1.5;
@@ -390,22 +395,22 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      font-size: 17px;
+      font-size: 22px;
       font-weight: 600;
       color: var(--text);
     }
-    .link-item .icon { font-size: 20px; }
+    .link-item .icon { font-size: 26px; }
     .link-item a, .link-item span.url {
       color: var(--cyan);
       text-decoration: none;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
+      font-size: 19px;
     }
 
     /* ── Caption ── */
     .caption {
       margin-top: 22px;
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 500;
       color: var(--muted);
       line-height: 1.6;
@@ -414,10 +419,9 @@
 
     /* ── CTA block ── */
     .cta-tagline {
-      margin-top: auto;
       padding-top: 28px;
       border-top: 1px solid var(--border);
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 600;
       color: var(--muted);
       display: flex;
