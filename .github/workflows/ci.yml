@@ -26,25 +26,15 @@ jobs:
 
       - name: Run tests
         id: tests
-        run: |
-          set +e
-          output=$(node --test tests/*.test.js 2>&1)
-          exit_code=$?
-          passed=$(echo "$output" | grep -c '✔')
-          failed=$(echo "$output" | grep '✖' | grep -vc 'failing tests:')
-          total=$((passed + failed))
-          echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
-          echo "total=$total"         >> $GITHUB_OUTPUT
-          echo "passed=$passed"       >> $GITHUB_OUTPUT
-          echo "failed=$failed"       >> $GITHUB_OUTPUT
-          exit $exit_code
+        run: npm test
+        continue-on-error: true
 
       - name: Post test results to PR
         if: always() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.tests.outputs.exit_code }}" = "0" ]; then
+          if [ "${{ steps.tests.outcome }}" = "success" ]; then
             STATUS="✅ Tests passed"
           else
             STATUS="❌ Tests failed"
@@ -52,10 +42,6 @@ jobs:
 
           BODY="<!-- recall-test-results -->
           ## $STATUS
-          | Total | Passed | Failed |
-          |-------|--------|--------|
-          | ${{ steps.tests.outputs.total }} | ${{ steps.tests.outputs.passed }} | ${{ steps.tests.outputs.failed }} |
-
           _Updated: $(date -u '+%Y-%m-%d %H:%M UTC') • Run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
 
           COMMENT_ID=$(gh api \
@@ -71,3 +57,6 @@ jobs:
               repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
               -f body="$BODY"
           fi
+
+          # Fail the job if tests failed
+          [ "${{ steps.tests.outcome }}" = "success" ]
