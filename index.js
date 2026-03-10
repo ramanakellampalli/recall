@@ -25,6 +25,7 @@ import { tryCopy } from './clipboard.js';
 import { exportSnippets, importSnippets } from './io.js';
 import * as ui from './ui.js';
 import readline from 'readline';
+import { spawnSync } from 'child_process';
 
 const c = ui.colors;
 
@@ -291,6 +292,41 @@ function cmdImport({ positional, flags }) {
   });
 }
 
+async function cmdRun({ positional, flags }) {
+  const rawQuery = positional.join(' ');
+  const { query, filters } = parseDSL(rawQuery);
+
+  const snippets = getAll();
+  const results = search(snippets, query, filters);
+
+  if (results.length === 0) {
+    ui.error('No matching snippets found.');
+    return;
+  }
+
+  const top = results[0];
+
+  console.log('');
+  console.log(`  ${c.bold}${c.cyan}Running:${c.reset} ${c.green}${top.command}${c.reset}`);
+  if (top.description) console.log(`  ${c.dim}${top.description}${c.reset}`);
+
+  if (flags.confirm || flags.c) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise(r => rl.question(`\n  ${c.yellow}Execute? [y/N]:${c.reset} `, r));
+    rl.close();
+    if (answer.trim().toLowerCase() !== 'y') {
+      console.log(`  ${c.dim}Aborted.${c.reset}\n`);
+      return;
+    }
+  }
+
+  console.log('');
+  recordUse(top.id);
+
+  const shell = process.env.SHELL || '/bin/sh';
+  spawnSync(shell, ['-c', top.command], { stdio: 'inherit' });
+}
+
 async function cmdInteractive() {
   const selected = await interactiveSearch();
   if (selected) {
@@ -310,6 +346,7 @@ ${c.bold}USAGE${c.reset}
   ${c.green}recall${c.reset}                              Interactive fuzzy search
   ${c.green}recall save${c.reset} <cmd> [options]          Save a command or snippet
   ${c.green}recall find${c.reset} <query>                  Search your snippets
+  ${c.green}recall run${c.reset} <query>                   Find and execute top result
   ${c.green}recall list${c.reset}                          List all saved snippets
   ${c.green}recall remove${c.reset} <id|index>             Delete a snippet
   ${c.green}recall edit${c.reset} <id|index> [options]     Edit a snippet
@@ -382,6 +419,10 @@ async function main() {
     case 'search':
       cmdFind({ positional, flags });
       break;
+    case 'run':
+    case 'r':
+      await cmdRun({ positional, flags });
+      break;
     case 'list':
     case 'ls':
     case 'l':
@@ -416,7 +457,7 @@ async function main() {
       break;
     case '--version':
     case '-v':
-      console.log('recall v1.0.1');
+      console.log('recall v1.1.0');
       break;
     default:
       // Treat unknown command as a find query

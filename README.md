@@ -63,6 +63,7 @@ recall find postgres --copy
 | `recall` | | Interactive fuzzy search |
 | `recall save <cmd>` | `s`, `add` | Save a command or snippet |
 | `recall find <query>` | `f`, `search` | Search your snippets |
+| `recall run <query>` | `r` | Find and execute top result |
 | `recall list` | `ls`, `l` | List all saved snippets |
 | `recall remove <id>` | `rm`, `delete` | Delete a snippet |
 | `recall edit <id>` | `e` | Edit a snippet |
