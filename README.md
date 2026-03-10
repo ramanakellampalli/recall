@@ -2,13 +2,14 @@
 
 [![npm version](https://img.shields.io/npm/v/recall-dev)](https://www.npmjs.com/package/recall-dev)
 [![npm downloads](https://img.shields.io/npm/dm/recall-dev)](https://www.npmjs.com/package/recall-dev)
+[![CI](https://github.com/ramanakellampalli/recall/actions/workflows/ci.yml/badge.svg)](https://github.com/ramanakellampalli/recall/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/ramanakellampalli/recall?style=social)](https://github.com/ramanakellampalli/recall)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ramanakellampalli/recall)](https://github.com/ramanakellampalli/recall)
 
 **A personal command & snippet memory for developers.**
 
-Stop Googling the same commands. Stop scrolling through shell history. Save once, find instantly.
+Stop Googling the same commands. Stop scrolling through shell history. Save once, find instantly, run directly.
 
 ## Prerequisites
 
@@ -49,6 +50,12 @@ recall save "docker system prune -af --volumes" -t docker,cleanup -d "Nuclear cl
 # Find it later
 recall find docker cleanup
 
+# Run it directly — no copy-paste needed
+recall run docker cleanup
+
+# Prompt before running destructive commands
+recall run docker cleanup --confirm
+
 # Interactive fuzzy search (just run recall with no args)
 recall
 
@@ -73,6 +80,25 @@ recall find postgres --copy
 | `recall import <file>` | | Import shared snippets |
 
 ## Features
+
+### Run Directly
+
+Find and execute a snippet in one step — no copy-paste:
+
+```bash
+recall run ssl cert          # finds top match and runs it
+recall r docker cleanup      # short alias
+```
+
+Add `--confirm` before running anything destructive:
+
+```bash
+recall run docker prune --confirm
+#   Running: docker system prune -af --volumes
+#   Nuclear clean Docker
+#
+#   Execute? [y/N]: y
+```
 
 ### Save with Context
 
@@ -112,9 +138,16 @@ recall find after:1h                 # recently added
 recall find tag:docker after:2d      # combine filters
 ```
 
+The same filters work with `recall run`:
+
+```bash
+recall run tag:k8s logs
+recall run repo:payments deploy --confirm
+```
+
 ### Frecency Ranking
 
-Search results are ranked by a blended score combining **fuzzy relevance**, **frequency** (how often you use them), and **recency** (how recently you used them). Your most relevant commands always float to the top. Usage is tracked automatically on every `find` — no extra flags needed.
+Search results are ranked by a blended score combining **fuzzy relevance**, **frequency** (how often you use them), and **recency** (how recently you used them). Your most relevant commands always float to the top. Usage is tracked automatically on every `find` and `run` — no extra flags needed.
 
 ### Interactive Mode
 
@@ -164,17 +197,17 @@ All data is stored locally in `~/.recall/snippets.json`. It's a plain JSON file 
 recall save "lsof -ti :3000 | xargs kill" -t port,kill -d "Kill process on port 3000"
 recall save "ssh -L 5432:rds-host:5432 bastion" -t ssh,tunnel,db -d "Tunnel to production DB"
 recall save "git log --oneline --graph --all" -t git,log -d "Pretty git log"
+recall save "docker system prune -af --volumes" -t docker,cleanup -d "Nuclear clean Docker"
 
-# Complex multi-line saves
-recall save 'curl -X POST http://localhost:3000/api/auth \
-  -H "Content-Type: application/json" \
-  -d '\''{"email":"test@test.com","password":"secret"}'\''' \
-  -t curl,auth,api -d "Test auth endpoint"
+# Find and run in one step
+recall run kill port
+recall run tunnel
+recall run docker cleanup --confirm   # prompt before nuking Docker
 
 # Quick searches
-recall find kill port
-recall find tunnel
 recall find git log
+recall find tag:aws
+recall find repo:payments error
 
 # Browse by tag
 recall list -t docker
