@@ -30,10 +30,13 @@ jobs:
           set +e
           output=$(npm test 2>&1)
           exit_code=$?
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          echo "$output" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          total=$(echo "$output" | grep -oP '(?<=ℹ tests )\d+')
+          passed=$(echo "$output" | grep -oP '(?<=ℹ pass )\d+')
+          failed=$(echo "$output" | grep -oP '(?<=ℹ fail )\d+')
           echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
+          echo "total=$total"         >> $GITHUB_OUTPUT
+          echo "passed=$passed"       >> $GITHUB_OUTPUT
+          echo "failed=$failed"       >> $GITHUB_OUTPUT
           exit $exit_code
 
       - name: Post test results to PR
@@ -41,16 +44,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          STATUS="${{ steps.tests.outputs.exit_code == '0' && '✅ All tests passed' || '❌ Tests failed' }}"
+          if [ "${{ steps.tests.outputs.exit_code }}" = "0" ]; then
+            STATUS="✅ Tests passed"
+          else
+            STATUS="❌ Tests failed"
+          fi
+
           BODY="<!-- recall-test-results -->
           ## $STATUS
+          | Total | Passed | Failed |
+          |-------|--------|--------|
+          | ${{ steps.tests.outputs.total }} | ${{ steps.tests.outputs.passed }} | ${{ steps.tests.outputs.failed }} |
 
-          \`\`\`
-          ${{ steps.tests.outputs.output }}
-          \`\`\`
           _Updated: $(date -u '+%Y-%m-%d %H:%M UTC') • Run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
 
-          # Find existing comment by marker
           COMMENT_ID=$(gh api \
             repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
             --jq '.[] | select(.body | startswith("<!-- recall-test-results -->")) | .id' | head -1)
