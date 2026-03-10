@@ -17,7 +17,7 @@ jobs:
           node-version: '20'
 
       - name: Syntax check
-        run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js
+        run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js commands/save.js commands/find.js commands/run.js commands/list.js commands/remove.js commands/edit.js commands/tags.js commands/stats.js commands/exportImport.js commands/interactive.js commands/help.js
 
       - name: Smoke test
         run: node index.js --version | grep -q "recall v"
