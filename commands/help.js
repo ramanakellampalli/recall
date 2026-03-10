@@ -18,6 +18,7 @@ ${c.bold}USAGE${c.reset}
   ${c.green}recall tags${c.reset}                          List all tags
   ${c.green}recall stats${c.reset}                         Usage statistics
   ${c.green}recall export${c.reset} [options]              Export for sharing
+  ${c.green}recall import-history${c.reset}                Import from shell history
   ${c.green}recall import${c.reset} <file>                 Import snippets
 
 ${c.bold}SAVE OPTIONS${c.reset}

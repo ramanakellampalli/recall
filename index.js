@@ -9,6 +9,7 @@ import { cmdEdit } from './commands/edit.js';
 import { cmdTags } from './commands/tags.js';
 import { cmdStats } from './commands/stats.js';
 import { cmdExport, cmdImport } from './commands/exportImport.js';
+import { cmdImportHistory } from './commands/importHistory.js';
 import { cmdInteractive } from './commands/interactive.js';
 import { cmdHelp } from './commands/help.js';
 
@@ -46,7 +47,7 @@ async function main() {
   const { command, positional, flags } = parseArgs(process.argv);
 
   if (flags.v || flags.version || command === '--version' || command === '-v') {
-    console.log('recall v1.3.0');
+    console.log('recall v1.4.0');
     return;
   }
 
@@ -83,6 +84,9 @@ async function main() {
       break;
     case 'import':
       cmdImport({ positional, flags });
+      break;
+    case 'import-history': case 'ih':
+      await cmdImportHistory({ flags });
       break;
     case 'help': case 'h': case '--help': case '-h':
       cmdHelp();
