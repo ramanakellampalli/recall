@@ -30,9 +30,9 @@ jobs:
           set +e
           output=$(npm test 2>&1)
           exit_code=$?
-          total=$(echo "$output" | grep -oP '(?<=ℹ tests )\d+')
-          passed=$(echo "$output" | grep -oP '(?<=ℹ pass )\d+')
-          failed=$(echo "$output" | grep -oP '(?<=ℹ fail )\d+')
+          passed=$(echo "$output" | grep -c '✔')
+          failed=$(echo "$output" | grep '✖' | grep -vc 'failing tests:')
+          total=$((passed + failed))
           echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
           echo "total=$total"         >> $GITHUB_OUTPUT
           echo "passed=$passed"       >> $GITHUB_OUTPUT
