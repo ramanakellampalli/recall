@@ -1,6 +1,7 @@
 import { getAll, recordUse } from '../store.js';
 import { search, parseDSL } from '../search.js';
 import { extractPlaceholders, fillPlaceholders } from './utils/placeholders.js';
+import { isDangerous } from './utils/danger.js';
 import * as ui from '../ui.js';
 import readline from 'readline';
 import { spawnSync } from 'child_process';
@@ -32,9 +33,12 @@ export async function cmdRun({ positional, flags }) {
     console.log(`  ${c.bold}${c.cyan}Running:${c.reset} ${c.green}${command}${c.reset}`);
   }
 
-  if (flags.confirm || flags.c) {
+  // Require confirmation for dangerous commands (auto-triggered or via --confirm flag)
+  const needsConfirm = flags.confirm || flags.c || isDangerous(command);
+  if (needsConfirm) {
+    const warning = isDangerous(command) ? `${c.red}⚠ Dangerous command detected.${c.reset} ` : '';
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const answer = await new Promise(r => rl.question(`\n  ${c.yellow}Execute? [y/N]:${c.reset} `, r));
+    const answer = await new Promise(r => rl.question(`\n  ${warning}${c.yellow}Execute? [y/N]:${c.reset} `, r));
     rl.close();
     if (answer.trim().toLowerCase() !== 'y') {
       console.log(`  ${c.dim}Aborted.${c.reset}\n`);
