@@ -94,11 +94,34 @@ Add `--confirm` before running anything destructive:
 
 ```bash
 recall run docker prune --confirm
-#   Running: docker system prune -af --volumes
+#   Command: docker system prune -af --volumes
 #   Nuclear clean Docker
 #
 #   Execute? [y/N]: y
 ```
+
+### Variable Placeholders
+
+Save reusable command templates with `{placeholder}` syntax. When you run them, recall prompts you to fill in the values:
+
+```bash
+# Save a template
+recall save "kubectl logs {pod} -n {namespace}" -t k8s -d "Stream pod logs"
+recall save "psql -U {user} -d {db} -h {host}" -t postgres -d "Connect to database"
+recall save "ssh -L {local_port}:{remote_host}:{remote_port} {bastion}" -t ssh,tunnel
+
+# Run — recall prompts for each value
+recall run k8s logs
+#   Command: kubectl logs {pod} -n {namespace}
+#   Stream pod logs
+#
+#   Fill in the placeholders:
+#   {pod}: api-7d9f-xk2p
+#   {namespace}: production
+#   Running: kubectl logs api-7d9f-xk2p -n production
+```
+
+Repeated placeholders like `{host}` are only asked once and substituted everywhere.
 
 ### Save with Context
 
