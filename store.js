@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const RECALL_DIR = path.join(os.homedir(), '.recall');
+const RECALL_DIR = process.env.RECALL_DATA_DIR || path.join(os.homedir(), '.recall');
 const DATA_FILE = path.join(RECALL_DIR, 'snippets.json');
 
 function ensureDir() {
