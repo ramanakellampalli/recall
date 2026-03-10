@@ -28,7 +28,7 @@ jobs:
         id: tests
         run: |
           set +e
-          output=$(npm test 2>&1)
+          output=$(node --test tests/*.test.js 2>&1)
           exit_code=$?
           passed=$(echo "$output" | grep -c '✔')
           failed=$(echo "$output" | grep '✖' | grep -vc 'failing tests:')
