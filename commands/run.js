@@ -1,5 +1,6 @@
 import { getAll, recordUse } from '../store.js';
 import { search, parseDSL } from '../search.js';
+import { extractPlaceholders, fillPlaceholders } from './utils/placeholders.js';
 import * as ui from '../ui.js';
 import readline from 'readline';
 import { spawnSync } from 'child_process';
@@ -21,8 +22,15 @@ export async function cmdRun({ positional, flags }) {
   const top = results[0];
 
   console.log('');
-  console.log(`  ${c.bold}${c.cyan}Running:${c.reset} ${c.green}${top.command}${c.reset}`);
+  console.log(`  ${c.bold}${c.cyan}Command:${c.reset} ${c.green}${top.command}${c.reset}`);
   if (top.description) console.log(`  ${c.dim}${top.description}${c.reset}`);
+
+  // Fill in placeholders if any exist
+  let command = top.command;
+  if (extractPlaceholders(command).length > 0) {
+    command = await fillPlaceholders(command);
+    console.log(`  ${c.bold}${c.cyan}Running:${c.reset} ${c.green}${command}${c.reset}`);
+  }
 
   if (flags.confirm || flags.c) {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -38,5 +46,5 @@ export async function cmdRun({ positional, flags }) {
   recordUse(top.id);
 
   const shell = process.env.SHELL || '/bin/sh';
-  spawnSync(shell, ['-c', top.command], { stdio: 'inherit' });
+  spawnSync(shell, ['-c', command], { stdio: 'inherit' });
 }
