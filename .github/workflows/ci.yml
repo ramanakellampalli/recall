@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -23,4 +25,42 @@ jobs:
         run: node index.js --version | grep -q "recall v"
 
       - name: Run tests
-        run: npm test
+        id: tests
+        run: |
+          set +e
+          output=$(npm test 2>&1)
+          exit_code=$?
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          echo "$output" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
+          exit $exit_code
+
+      - name: Post test results to PR
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATUS="${{ steps.tests.outputs.exit_code == '0' && '✅ All tests passed' || '❌ Tests failed' }}"
+          BODY="<!-- recall-test-results -->
+          ## $STATUS
+
+          \`\`\`
+          ${{ steps.tests.outputs.output }}
+          \`\`\`
+          _Updated: $(date -u '+%Y-%m-%d %H:%M UTC') • Run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
+
+          # Find existing comment by marker
+          COMMENT_ID=$(gh api \
+            repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            --jq '.[] | select(.body | startswith("<!-- recall-test-results -->")) | .id' | head -1)
+
+          if [ -n "$COMMENT_ID" ]; then
+            gh api --method PATCH \
+              repos/${{ github.repository }}/issues/comments/$COMMENT_ID \
+              -f body="$BODY"
+          else
+            gh api --method POST \
+              repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+              -f body="$BODY"
+          fi
