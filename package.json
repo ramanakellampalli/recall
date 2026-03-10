@@ -1,6 +1,6 @@
 {
   "name": "recall-dev",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A personal command & snippet memory for developers",
   "main": "index.js",
   "bin": {

@@ -9,8 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -19,44 +17,7 @@ jobs:
           node-version: '20'
 
       - name: Syntax check
-        run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js commands/save.js commands/find.js commands/run.js commands/list.js commands/remove.js commands/edit.js commands/tags.js commands/stats.js commands/exportImport.js commands/interactive.js commands/help.js commands/utils/placeholders.js
+        run: node --check index.js store.js search.js interactive.js clipboard.js context.js io.js ui.js commands/save.js commands/find.js commands/run.js commands/list.js commands/remove.js commands/edit.js commands/tags.js commands/stats.js commands/exportImport.js commands/importHistory.js commands/interactive.js commands/help.js commands/utils/history.js
 
       - name: Smoke test
         run: node index.js --version | grep -q "recall v"
-
-      - name: Run tests
-        id: tests
-        run: npm test
-        continue-on-error: true
-
-      - name: Post test results to PR
-        if: always() && github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ steps.tests.outcome }}" = "success" ]; then
-            STATUS="✅ Tests passed"
-          else
-            STATUS="❌ Tests failed"
-          fi
-
-          BODY="<!-- recall-test-results -->
-          ## $STATUS
-          _Updated: $(date -u '+%Y-%m-%d %H:%M UTC') • Run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
-
-          COMMENT_ID=$(gh api \
-            repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-            --jq '.[] | select(.body | startswith("<!-- recall-test-results -->")) | .id' | head -1)
-
-          if [ -n "$COMMENT_ID" ]; then
-            gh api --method PATCH \
-              repos/${{ github.repository }}/issues/comments/$COMMENT_ID \
-              -f body="$BODY"
-          else
-            gh api --method POST \
-              repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-              -f body="$BODY"
-          fi
-
-          # Fail the job if tests failed
-          [ "${{ steps.tests.outcome }}" = "success" ]

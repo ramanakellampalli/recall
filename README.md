@@ -78,6 +78,7 @@ recall find postgres --copy
 | `recall stats` | | Usage statistics |
 | `recall export` | | Export for team sharing |
 | `recall import <file>` | | Import shared snippets |
+| `recall import-history` | `ih` | Import commands from shell history |
 
 ## Features
 
