@@ -11,6 +11,17 @@
 
 Stop Googling the same commands. Stop scrolling through shell history. Save once, find instantly, run directly.
 
+## Who is this for?
+
+`recall` is for anyone who lives in the terminal:
+
+- **DevOps / SRE** — kubectl one-liners, terraform flows, cloud CLI commands you use once a month and always forget
+- **Backend developers** — database connections, migration commands, port-kill scripts, docker cleanup
+- **Git power users** — rebase recipes, log formats, cherry-pick workflows
+- **Anyone onboarding a team** — export your playbook and share it as a JSON file
+
+If you've ever typed `history | grep` to find something you ran three months ago, this tool is for you.
+
 ## Prerequisites
 
 You need **Node.js v18 or higher** and **npm** installed.
@@ -200,6 +211,40 @@ recall import team-commands.json
 recall import team-commands.json --dry-run
 ```
 
+### Import from Shell History
+
+Already have hundreds of useful commands in your shell history? Import the best ones in seconds:
+
+```bash
+recall import-history
+# or shorthand:
+recall ih
+```
+
+`recall` reads your shell history (`~/.zsh_history`, `~/.bash_history`, or fish history), ranks commands by how often you used them, filters out noise (`ls`, `cd`, `clear`, etc.), and shows an interactive picker:
+
+```
+Shell History Import
+Source: /Users/you/.zsh_history
+Space to select • A to select all • Enter to save • Esc to cancel
+
+▸ [✔] kubectl rollout restart deployment/api -n prod  ×14
+  [ ] docker compose up -d --build                    ×11
+  [ ] terraform plan -out=tfplan                      ×9
+  [ ] psql -U admin -d proddb -h localhost            ×8
+  ...
+
+3 selected of 42 • Space select • A all • Enter save • Esc cancel
+```
+
+Selected commands are saved with the `#history` tag. Edit descriptions later with `recall edit <id>`.
+
+To import from a specific file:
+```bash
+recall import-history --file ~/.my_custom_history
+recall import-history --top 100   # show top 100 instead of 50
+```
+
 ### Clipboard Integration
 
 ```bash
@@ -208,11 +253,13 @@ recall find ssl --copy     # Copies top result to clipboard
 
 Works on macOS (pbcopy), Linux (xclip/xsel/wl-copy), and Windows (clip).
 
-## Data Storage
+## Data & Privacy
 
-All data is stored locally in `~/.recall/snippets.json`. It's a plain JSON file you can back up, version control, or edit directly.
+All data is stored **100% locally** in `~/.recall/snippets.json`. Nothing is sent to any server.
 
-> This path is intentionally excluded from the project `.gitignore` — your personal snippets won't be committed accidentally.
+It's a plain JSON file — you can back it up, version-control it, or edit it directly. Export with `recall export` to share with your team or move between machines.
+
+> Your personal `~/.recall/` directory is excluded from this repo's `.gitignore` — snippets won't be accidentally committed if you clone or fork this project.
 
 ## Examples
 
