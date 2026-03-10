@@ -1,957 +1,630 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>recall — LinkedIn Carousel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    /* ── Reset & base ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>recall — LinkedIn Carousel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg:       #0f172a;
-      --surface:  #1e293b;
-      --border:   #334155;
-      --cyan:     #06b6d4;
-      --green:    #10b981;
-      --yellow:   #f59e0b;
-      --red:      #f43f5e;
-      --text:     #e2e8f0;
-      --muted:    #94a3b8;
-      --slide-sz: 1080px;
-    }
+:root {
+  --navy:      #0f172a;
+  --mid:       #1e293b;
+  --border:    #334155;
+  --cyan:      #06b6d4;
+  --green:     #10b981;
+  --yellow:    #f59e0b;
+  --red:       #f43f5e;
+  --text:      #e2e8f0;
+  --muted:     #94a3b8;
+  --off-white: #f8fafc;
+  --dk-text:   #0f172a;
+}
 
-    html, body {
-      background: #060e1d;
-      font-family: 'Inter', system-ui, sans-serif;
-      color: var(--text);
-    }
+html, body { background: #080d18; font-family: 'Inter', system-ui, sans-serif; }
 
-    /* ── Print button ── */
-    #print-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 999;
-      background: var(--cyan);
-      color: #0f172a;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 22px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 24px rgba(6,182,212,0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    #print-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(6,182,212,0.45);
-    }
+#print-btn {
+  position: fixed; top: 20px; right: 20px; z-index: 999;
+  background: var(--cyan); color: #0f172a; border: none;
+  border-radius: 10px; padding: 12px 22px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(6,182,212,0.35);
+}
 
-    /* ── Screen layout ── */
-    .deck {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      padding: 60px 20px 80px;
-    }
+.deck { display: flex; flex-direction: column; align-items: center; gap: 32px; padding: 60px 20px 80px; }
+.slide-wrapper { width: 1080px; height: 1080px; flex-shrink: 0; }
 
-    /* ── Slide wrapper — handles responsive scaling on screen ── */
-    .slide-wrapper {
-      width: var(--slide-sz);
-      height: var(--slide-sz);
-      flex-shrink: 0;
-    }
+.slide {
+  width: 1080px; height: 1080px;
+  position: relative; overflow: hidden; transform-origin: top left;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 24px 80px rgba(0,0,0,0.7);
+}
+.dark  { background: var(--navy); color: var(--text); }
+.mid   { background: var(--mid);  color: var(--text); }
+.light { background: var(--off-white); color: var(--dk-text); }
 
-    /* ── Slide base ── */
-    .slide {
-      width: var(--slide-sz);
-      height: var(--slide-sz);
-      background: var(--bg);
-      position: relative;
-      overflow: hidden;
-      transform-origin: top left;
-      box-shadow: 0 0 0 1px var(--border), 0 24px 80px rgba(0,0,0,0.7);
-    }
+.grid-tex {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
 
-    /* Subtle grid texture */
-    .slide::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px);
-      background-size: 54px 54px;
-      pointer-events: none;
-    }
+/* brand bar */
+.brand-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 56px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 56px; z-index: 10;
+}
+.brand-name {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; font-family: 'JetBrains Mono', monospace;
+}
+.dark .brand-name, .mid .brand-name { color: var(--muted); }
+.dark .brand-name .hi, .mid .brand-name .hi { color: var(--cyan); }
+.light .brand-name { color: #64748b; }
+.light .brand-name .hi { color: var(--cyan); }
+.slide-num { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; }
+.dark .slide-num, .mid .slide-num { color: var(--muted); }
+.light .slide-num { color: #94a3b8; }
 
-    /* Gradient glow blobs */
-    .glow-tl {
-      position: absolute;
-      top: -120px; left: -120px;
-      width: 480px; height: 480px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(6,182,212,0.14) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .glow-br {
-      position: absolute;
-      bottom: -120px; right: -120px;
-      width: 440px; height: 440px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .glow-tr {
-      position: absolute;
-      top: -80px; right: -80px;
-      width: 360px; height: 360px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(6,182,212,0.10) 0%, transparent 70%);
-      pointer-events: none;
-    }
+/* accent lines */
+.line-top { position: absolute; top: 56px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green), var(--cyan)); }
+.line-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green), var(--cyan)); }
 
-    /* ── Slide inner content ── */
-    .slide-inner {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 64px 76px 80px;
-      justify-content: center;
-    }
+/* content area */
+.content { position: absolute; top: 59px; left: 0; right: 0; bottom: 3px; display: flex; flex-direction: column; z-index: 1; }
 
-    /* ── Slide number badge ── */
-    .slide-num {
-      position: absolute;
-      top: 32px;
-      right: 40px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      z-index: 2;
-    }
+.glow { position: absolute; border-radius: 50%; pointer-events: none; }
 
-    /* ── Brand watermark ── */
-    .brand-mark {
-      position: absolute;
-      bottom: 34px;
-      left: 76px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--border);
-      letter-spacing: 0.06em;
-      font-family: 'JetBrains Mono', monospace;
-      z-index: 2;
-    }
-    .brand-mark span { color: var(--cyan); }
+/* typography */
+.slide-label { font-size: 13px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan); margin-bottom: 10px; }
+.dark-headline { font-size: 58px; font-weight: 900; line-height: 1.05; letter-spacing: -1.5px; color: #fff; }
+.dark-headline .c { color: var(--cyan); }
+.dark-headline .g { color: var(--green); }
+.light-headline { font-size: 56px; font-weight: 900; line-height: 1.05; letter-spacing: -1.5px; color: var(--dk-text); }
+.light-headline .c { color: var(--cyan); }
 
-    /* ── Typography ── */
-    .label {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 16px;
-    }
+/* terminal */
+.terminal {
+  background: #0a0e1a; border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 36px;
+  font-family: 'JetBrains Mono', monospace; font-size: 17px;
+  position: relative; overflow: hidden;
+}
+.terminal.on-light { background: #0f172a; }
+.terminal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+.t-dots { display: flex; gap: 7px; margin-bottom: 16px; }
+.t-dots span { width: 12px; height: 12px; border-radius: 50%; }
+.dot-r { background: #f43f5e; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+.t-line { display: block; white-space: pre; line-height: 2.5; }
+.tc { color: var(--cyan); } .tg { color: var(--green); } .ty { color: var(--yellow); }
+.tr { color: var(--red); }  .tm { color: var(--muted); } .tw { color: #fff; } .tp { color: #a78bfa; }
 
-    h1.mega {
-      font-size: 120px;
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -0.04em;
-      color: #fff;
-    }
-    h1.mega span { color: var(--cyan); }
+/* card grids */
+.card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
-    h2.headline {
-      font-size: 60px;
-      font-weight: 900;
-      line-height: 1.04;
-      letter-spacing: -0.03em;
-      color: #fff;
-    }
-    h2.headline span { color: var(--cyan); }
-    h2.headline em { color: var(--green); font-style: normal; }
+.dark-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; }
+.light-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
+.light-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.light-card.ct::before { background: var(--cyan); }
+.light-card.cg::before { background: var(--green); }
+.light-card.cp::before { background: #a78bfa; }
 
-    h3.sub-head {
-      font-size: 26px;
-      font-weight: 700;
-      line-height: 1.2;
-      color: var(--muted);
-      margin-top: 10px;
-    }
+.card-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.ci-c { background: rgba(6,182,212,0.1); } .ci-g { background: rgba(16,185,129,0.1); } .ci-p { background: rgba(167,139,250,0.1); }
 
-    .body-text {
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 1.65;
-      color: var(--muted);
-    }
+.dark-card .card-title  { font-size: 18px; font-weight: 700; color: #fff; }
+.dark-card .card-body   { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.dark-card .card-emoji  { font-size: 32px; line-height: 1; }
+.light-card .card-title { font-size: 19px; font-weight: 800; color: var(--dk-text); }
+.light-card .card-body  { font-size: 14px; color: #475569; line-height: 1.6; }
 
-    /* ── Divider ── */
-    .divider {
-      width: 64px;
-      height: 4px;
-      background: linear-gradient(90deg, var(--cyan), var(--green));
-      border-radius: 2px;
-      margin: 20px 0;
-    }
+/* inline code */
+.ic { background: #e2e8f0; padding: 2px 8px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #0f172a; }
 
-    /* ── Pill badge ── */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(6,182,212,0.12);
-      border: 1px solid rgba(6,182,212,0.3);
-      border-radius: 100px;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--cyan);
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .pill-green {
-      background: rgba(16,185,129,0.12);
-      border-color: rgba(16,185,129,0.3);
-      color: var(--green);
-    }
+/* check list */
+.check-list { display: flex; flex-direction: column; gap: 14px; }
+.check-item { display: flex; align-items: flex-start; gap: 14px; }
+.check-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--green); }
+.check-item p { font-size: 15px; color: #374151; line-height: 1.5; }
 
-    /* ── Code block ── */
-    .code-block {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 44px 48px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 20px;
-      line-height: 2.8;
-      position: relative;
-      overflow: hidden;
-    }
-    .code-block::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--cyan), var(--green));
-    }
-    /* dot row */
-    .code-dots {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 18px;
-    }
-    .code-dots span {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-    }
-    .dot-red   { background: #f43f5e; }
-    .dot-yel   { background: #f59e0b; }
-    .dot-grn   { background: #10b981; }
+/* install bar */
+.install-bar { background: var(--navy); border-radius: 14px; padding: 20px 28px; display: flex; align-items: center; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--cyan); font-weight: 600; }
+.install-bar .trail { margin-left: auto; color: var(--muted); font-size: 14px; }
 
-    .c-cmd     { color: var(--cyan); }
-    .c-flag    { color: #a78bfa; }
-    .c-str     { color: var(--green); }
-    .c-comment { color: #64748b; }
-    .c-prompt  { color: var(--yellow); }
-    .c-warn    { color: var(--red); }
-    .c-muted   { color: var(--muted); }
-    .c-check   { color: var(--green); }
-    .c-white   { color: #fff; }
+/* filter cards (slide 8) */
+.filter-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 22px; display: flex; gap: 16px; align-items: flex-start; }
+.filter-tag { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 7px; padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--green); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; white-space: nowrap; }
+.filter-card p { font-size: 14px; color: var(--muted); line-height: 1.55; }
 
-    code { display: block; white-space: pre; }
+/* persona cards (slide 9) */
+.persona-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 26px; display: flex; gap: 20px; align-items: flex-start; }
+.persona-icon { width: 56px; height: 56px; border-radius: 14px; background: rgba(6,182,212,0.08); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.persona-card h4 { font-size: 19px; font-weight: 800; color: var(--dk-text); margin-bottom: 7px; }
+.persona-card p  { font-size: 14px; color: #475569; line-height: 1.55; }
 
-    /* ── Bullet list ── */
-    .pain-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      flex: 1;
-      margin-top: 8px;
-      justify-content: space-around;
-    }
-    .pain-list li {
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.4;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px 32px;
-    }
-    .pain-list li .icon-wrap {
-      font-size: 32px;
-      flex-shrink: 0;
-    }
-    .pain-list li .emoji {
-      font-size: 28px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
+/* safety slide */
+.s6-hl { font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; color: #fff; margin-top: 20px; }
+.s6-hl .c { color: var(--cyan); }
+.danger-tags { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 36px; }
+.danger-tag { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); border-radius: 8px; padding: 10px 18px; font-size: 15px; font-weight: 600; color: #f43f5e; font-family: 'JetBrains Mono', monospace; }
+.safety-row { display: flex; gap: 18px; width: 100%; }
+.safety-card { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.safety-card .sci { font-size: 30px; }
+.safety-card h4 { font-size: 16px; font-weight: 700; color: #fff; }
+.safety-card p  { font-size: 13px; color: var(--muted); line-height: 1.5; text-align: center; }
 
-    /* ── Feature pillars ── */
-    .pillars {
-      display: flex;
-      gap: 24px;
-      flex: 1;
-      margin-top: 24px;
-    }
-    .pillar {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 44px 32px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
-      gap: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .pillar::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-    }
-    .pillar.p1::after { background: linear-gradient(90deg, var(--cyan), transparent); }
-    .pillar.p2::after { background: linear-gradient(90deg, var(--green), transparent); }
-    .pillar.p3::after { background: linear-gradient(90deg, #a78bfa, transparent); }
+/* how-row (slide 5) */
+.how-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.how-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; }
+.how-num { width: 34px; height: 34px; border-radius: 9px; background: rgba(6,182,212,0.1); color: var(--cyan); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.how-card p { font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.4; }
 
-    .pillar-icon {
-      font-size: 40px;
-      line-height: 1;
-    }
-    .pillar-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .pillar-desc {
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--muted);
-      line-height: 1.55;
-    }
+/* cover */
+.cover-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 32px; }
+.cover-mark { font-size: 170px; font-weight: 900; line-height: 0.9; letter-spacing: -8px; color: #fff; }
+.cover-mark .c { color: var(--cyan); }
+.cover-div { width: 80px; height: 4px; background: linear-gradient(90deg, var(--cyan), var(--green)); border-radius: 2px; margin: 36px auto; }
+.cover-tag { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.3; max-width: 700px; margin-bottom: 12px; }
+.cover-sub { font-size: 17px; color: var(--muted); margin-bottom: 44px; }
+.cover-pill { display: inline-flex; align-items: center; gap: 10px; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.35); border-radius: 100px; padding: 14px 28px; font-size: 18px; font-weight: 600; color: var(--cyan); font-family: 'JetBrains Mono', monospace; }
+.cover-meta { font-size: 13px; color: var(--muted); margin-top: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
 
-    /* ── Persona grid ── */
-    .persona-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      flex: 1;
-      margin-top: 20px;
-    }
-    .persona-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 36px 32px;
-      display: flex;
-      align-items: center;
-      gap: 22px;
-    }
-    .persona-icon {
-      font-size: 44px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .persona-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-    .persona-desc {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+/* cta */
+.cta-mark { font-size: 100px; font-weight: 900; letter-spacing: -4px; color: #fff; }
+.cta-mark .c { color: var(--cyan); }
+.cta-sub { font-size: 22px; color: var(--muted); margin-top: 14px; margin-bottom: 40px; }
+.cta-install { display: inline-flex; align-items: center; gap: 12px; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.4); border-radius: 14px; padding: 20px 36px; font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: var(--cyan); }
+.cta-div { width: 80px; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green)); border-radius: 2px; margin: 36px auto; }
+.cta-links { display: flex; gap: 32px; justify-content: center; }
+.cta-link { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; color: var(--muted); }
+.cta-link .url { font-family: 'JetBrains Mono', monospace; color: var(--cyan); font-size: 15px; }
+.cta-badges { display: flex; gap: 14px; justify-content: center; margin-top: 36px; }
+.cta-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 10px 22px; font-size: 14px; font-weight: 600; color: var(--muted); }
 
-    /* ── Link row ── */
-    .link-row {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      margin-top: 36px;
-    }
-    .link-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .link-item .icon { font-size: 24px; }
-    .link-item a, .link-item span.url {
-      color: var(--cyan);
-      text-decoration: none;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 17px;
-    }
-
-    /* ── Caption ── */
-    .caption {
-      margin-top: 22px;
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--muted);
-      line-height: 1.6;
-      font-style: italic;
-    }
-
-    /* ── CTA block ── */
-    .cta-tagline {
-      padding-top: 28px;
-      border-top: 1px solid var(--border);
-      font-size: 17px;
-      font-weight: 600;
-      color: var(--muted);
-      display: flex;
-      gap: 20px;
-    }
-    .cta-tagline span { color: var(--green); }
-
-    /* ── Node badge ── */
-    .req-note {
-      margin-top: 20px;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .req-note::before {
-      content: '';
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--yellow);
-    }
-
-    /* ── Spacers ── */
-    .mt-auto { margin-top: auto; }
-    .mt-8  { margin-top: 8px; }
-    .mt-12 { margin-top: 12px; }
-    .mt-18 { margin-top: 18px; }
-    .mt-24 { margin-top: 24px; }
-    .mt-32 { margin-top: 32px; }
-    .mt-40 { margin-top: 40px; }
-    .mt-48 { margin-top: 48px; }
-    .mt-56 { margin-top: 56px; }
-
-    /* ── Bottom URL strip (slides 1, 10) ── */
-    .url-strip {
-      position: absolute;
-      bottom: 34px;
-      right: 76px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--muted);
-      font-family: 'JetBrains Mono', monospace;
-      z-index: 2;
-    }
-    .url-strip span { color: var(--cyan); }
-
-    /* ── Print styles ── */
-    @media print {
-      /* 1080px at 96dpi = 11.25in — forces a perfect square page in Chrome */
-      @page {
-        size: 11.25in 11.25in;
-        margin: 0;
-      }
-
-      html, body {
-        background: #0f172a !important;
-        width: 1080px;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      #print-btn { display: none !important; }
-
-      .deck {
-        gap: 0;
-        padding: 0;
-        align-items: flex-start;
-      }
-
-      .slide-wrapper {
-        width: 1080px;
-        height: 1080px;
-      }
-
-      .slide {
-        page-break-after: always;
-        break-after: page;
-        box-shadow: none;
-        width: 1080px;
-        height: 1080px;
-        transform: none !important;
-      }
-    }
-  </style>
+/* print */
+@media print {
+  @page { size: 11.25in 11.25in; margin: 0; }
+  html, body { background: #0f172a !important; width: 1080px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #print-btn { display: none !important; }
+  .deck { gap: 0; padding: 0; align-items: flex-start; }
+  .slide-wrapper { width: 1080px; height: 1080px; }
+  .slide { page-break-after: always; break-after: page; box-shadow: none; width: 1080px; height: 1080px; transform: none !important; }
+}
+</style>
 </head>
 <body>
 
-<button id="print-btn" onclick="window.print()">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-  Print to PDF
-</button>
+<button id="print-btn" onclick="window.print()">⬇ Print to PDF</button>
 
 <div class="deck">
 
-  <!-- ═══════════════════════════════════════ SLIDE 1 — COVER ═══ -->
-  <div class="slide" id="slide-1">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">01 / 10</div>
+<!-- ══ SLIDE 1 — COVER ══ -->
+<div class="slide dark" id="s1">
+  <div class="grid-tex"></div>
+  <div class="glow" style="width:600px;height:600px;background:radial-gradient(circle,rgba(6,182,212,0.18),transparent 70%);top:-200px;left:-150px;"></div>
+  <div class="glow" style="width:500px;height:500px;background:radial-gradient(circle,rgba(16,185,129,0.12),transparent 70%);bottom:-150px;right:-100px;"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">01 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="align-items:center;justify-content:center;text-align:center;padding:48px 80px;gap:0;">
+    <div class="cover-eyebrow">Your personal command memory for the terminal</div>
+    <div class="cover-mark">re<span class="c">call</span></div>
+    <div class="cover-div"></div>
+    <div class="cover-tag">Stop Googling the same commands.<br/>Save once, find instantly, run directly.</div>
+    <div class="cover-sub">Zero dependencies &nbsp;·&nbsp; 100% local &nbsp;·&nbsp; MIT licensed</div>
+    <div class="cover-pill">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      npm install -g recall-dev
+    </div>
+    <div class="cover-meta">Node.js v18+ &nbsp;·&nbsp; macOS · Linux · Windows</div>
+  </div>
+</div>
 
-    <div class="slide-inner">
-      <div class="label">npm install -g recall-dev</div>
+<!-- ══ SLIDE 2 — PROBLEM ══ -->
+<div class="slide dark" id="s2">
+  <div class="grid-tex"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">02 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content">
+    <div style="padding:52px 72px 0;">
+      <div class="slide-label">The Problem</div>
+      <div class="dark-headline">Sound <span class="g">familiar?</span></div>
+    </div>
+    <div class="card-grid-2" style="padding:28px 72px 52px;flex:1;align-content:stretch;">
+      <div class="dark-card">
+        <div class="card-emoji">😤</div>
+        <div class="card-title">Googling the same command again</div>
+        <div class="card-body">That kubectl one-liner you've looked up 10 times. Now on the 11th. Every. Single. Time.</div>
+      </div>
+      <div class="dark-card">
+        <div class="card-emoji">📜</div>
+        <div class="card-title">Shell history is useless</div>
+        <div class="card-body">3,000 lines. ctrl+R only finds exact matches. You can't search by tag, project, or description.</div>
+      </div>
+      <div class="dark-card">
+        <div class="card-emoji">💸</div>
+        <div class="card-title">Notes apps aren't built for this</div>
+        <div class="card-body">Paying for Notion just to paste CLI commands is massive overkill for a simple problem.</div>
+      </div>
+      <div class="dark-card">
+        <div class="card-emoji">🤦</div>
+        <div class="card-title">"What was that docker command?"</div>
+        <div class="card-body">Asking teammates breaks their flow and yours. The same question, for the fifth time this month.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <h1 class="mega" style="margin-top: 24px;">re<span>call</span></h1>
+<!-- ══ SLIDE 3 — SOLUTION ══ -->
+<div class="slide light" id="s3">
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">03 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:28px;">
+    <div>
+      <div class="slide-label">The Solution</div>
+      <div class="light-headline">Meet <span class="c">recall</span></div>
+      <div style="font-size:18px;color:#475569;margin-top:10px;font-weight:500;">A zero-dependency CLI snippet manager — built entirely for the terminal.</div>
+    </div>
+    <div class="card-grid-3">
+      <div class="light-card ct">
+        <div class="card-icon ci-c">💾</div>
+        <div class="card-title">Save</div>
+        <div class="card-body">Store any command with tags, a description, and automatic git context — repo, branch, remote all captured.</div>
+      </div>
+      <div class="light-card cg">
+        <div class="card-icon ci-g">🔍</div>
+        <div class="card-title">Find</div>
+        <div class="card-body">Fuzzy search with frecency ranking. Filter by tag, repo, or time window using a simple DSL.</div>
+      </div>
+      <div class="light-card cp">
+        <div class="card-icon ci-p">▶️</div>
+        <div class="card-title">Run</div>
+        <div class="card-body">Execute directly — no copy-paste. Detects {placeholder} variables and prompts for each value before running.</div>
+      </div>
+    </div>
+    <div class="install-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      npm install -g recall-dev
+      <span class="trail">~/.recall/snippets.json &nbsp;·&nbsp; 100% local &nbsp;·&nbsp; no cloud</span>
+    </div>
+  </div>
+</div>
 
-      <div class="divider" style="margin-top: 20px;"></div>
+<!-- ══ SLIDE 4 — GET STARTED ══ -->
+<div class="slide dark" id="s4">
+  <div class="grid-tex"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">04 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:30px;">
+    <div>
+      <div class="slide-label">Getting Started</div>
+      <div class="dark-headline">Up and running in <span class="c">10 seconds</span></div>
+    </div>
+    <div style="display:flex;gap:18px;">
+      <div class="dark-card" style="flex:1;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--cyan);">01</div>
+        <div class="card-title">Install globally</div>
+        <div class="card-body" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);">npm install -g recall-dev</div>
+        <div class="card-body">Node.js v18 or later required.</div>
+      </div>
+      <div class="dark-card" style="flex:1;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--cyan);">02</div>
+        <div class="card-title">Save a snippet</div>
+        <div class="card-body" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);">recall save "cmd" -t tag -d "desc"</div>
+        <div class="card-body">Tags, descriptions and git context all optional but useful.</div>
+      </div>
+      <div class="dark-card" style="flex:1;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--cyan);">03</div>
+        <div class="card-title">Find &amp; run it</div>
+        <div class="card-body" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);">recall run docker clean</div>
+        <div class="card-body">Fuzzy-matches your snippet and runs it directly.</div>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="t-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <code>
+        <span class="t-line"><span class="tm"># save once</span></span>
+        <span class="t-line"><span class="tc">recall save </span><span class="tg">"docker system prune -af"</span> <span class="tp">-t</span> docker <span class="tp">-d</span> <span class="tg">"Nuclear clean"</span></span>
+        <span class="t-line"> </span>
+        <span class="t-line"><span class="tm"># find &amp; run later</span></span>
+        <span class="t-line"><span class="tc">recall run docker clean</span></span>
+      </code>
+    </div>
+  </div>
+</div>
 
-      <h3 class="sub-head" style="color: var(--text); max-width: 820px;">
-        Your personal command memory<br/>for the terminal
-      </h3>
+<!-- ══ SLIDE 5 — TEMPLATES ══ -->
+<div class="slide light" id="s5">
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">05 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:26px;">
+    <div>
+      <div class="slide-label">Dynamic Templates</div>
+      <div class="light-headline">Save templates, not just <span class="c">commands</span></div>
+      <div style="font-size:17px;color:#475569;margin-top:10px;font-weight:500;">
+        Wrap variable parts in <code class="ic">{curly braces}</code> — recall detects them and prompts for each value at run time.
+      </div>
+    </div>
+    <div class="terminal on-light">
+      <div class="t-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <code>
+        <span class="t-line"><span class="tm"># save a template once</span></span>
+        <span class="t-line"><span class="tc">recall save </span><span class="tg">"kubectl logs {pod} -n {namespace}"</span> <span class="tp">-t</span> k8s</span>
+        <span class="t-line"> </span>
+        <span class="t-line"><span class="tm"># run — recall prompts for each variable</span></span>
+        <span class="t-line"><span class="tc">recall run k8s logs</span></span>
+        <span class="t-line"><span class="tm">  Command: </span><span class="tw">kubectl logs {pod} -n {namespace}</span></span>
+        <span class="t-line"><span class="ty">  {pod}: </span><span class="tw">api-7d9f-xk2p</span></span>
+        <span class="t-line"><span class="ty">  {namespace}: </span><span class="tw">production</span></span>
+        <span class="t-line"><span class="tg">  Running: kubectl logs api-7d9f-xk2p -n production</span></span>
+      </code>
+    </div>
+    <div class="how-row">
+      <div class="how-card"><div class="how-num">1</div><p>Write any command with {variable} tokens</p></div>
+      <div class="how-card"><div class="how-num">2</div><p>recall detects placeholders automatically</p></div>
+      <div class="how-card"><div class="how-num">3</div><p>Prompts for each value, then executes</p></div>
+    </div>
+  </div>
+</div>
 
-      <p class="body-text" style="margin-top: 32px; max-width: 800px;">
-        Stop Googling the same commands.<br/>
-        Save once, find instantly, run directly.
-      </p>
+<!-- ══ SLIDE 6 — SAFETY ══ -->
+<div class="slide dark" id="s6">
+  <div class="grid-tex"></div>
+  <div class="glow" style="width:500px;height:500px;background:radial-gradient(circle,rgba(244,63,94,0.15),transparent 70%);top:-150px;right:-100px;"></div>
+  <div class="glow" style="width:400px;height:400px;background:radial-gradient(circle,rgba(6,182,212,0.1),transparent 70%);bottom:-100px;left:-80px;"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">06 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="align-items:center;justify-content:center;text-align:center;padding:52px 80px;gap:0;">
+    <div class="slide-label">Safety</div>
+    <div class="s6-hl">Built-in<br/><span class="c">safety net</span></div>
+    <div style="font-size:19px;color:var(--muted);max-width:680px;line-height:1.6;margin-top:24px;">Destructive commands are detected automatically — no flags needed. recall warns you and requires explicit confirmation before running anything dangerous.</div>
+    <div class="danger-tags">
+      <div class="danger-tag">rm -rf</div>
+      <div class="danger-tag">kubectl delete</div>
+      <div class="danger-tag">terraform destroy</div>
+      <div class="danger-tag">DROP TABLE</div>
+      <div class="danger-tag">git push --force</div>
+      <div class="danger-tag">docker system prune</div>
+    </div>
+    <div class="safety-row" style="margin-top:40px;">
+      <div class="safety-card">
+        <div class="sci">🔍</div>
+        <h4>Auto-detected</h4>
+        <p>Pattern matching across 15+ destructive command categories</p>
+      </div>
+      <div class="safety-card">
+        <div class="sci">⚠️</div>
+        <h4>Always warned</h4>
+        <p>Red warning + confirmation prompt before any dangerous execution</p>
+      </div>
+      <div class="safety-card">
+        <div class="sci">🛡️</div>
+        <h4>Default: abort</h4>
+        <p>Must type 'y' to proceed — Enter alone does nothing</p>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <div style="margin-top: 44px; display: flex; flex-direction: column; gap: 24px;">
-        <div class="pill">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
-          npm install -g recall-dev
+<!-- ══ SLIDE 7 — IMPORT HISTORY ══ -->
+<div class="slide light" id="s7">
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">07 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:28px;">
+    <div>
+      <div class="slide-label">Shell History Import</div>
+      <div class="light-headline">Already have <span class="c">great commands?</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;">
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div style="font-size:17px;color:#475569;line-height:1.6;">
+          Run <code class="ic">recall import-history</code> — reads your shell history, sorts by frequency, and opens an interactive picker to save the keepers.
         </div>
-        <div style="font-size: 13px; font-weight: 600; color: var(--muted); font-family: 'JetBrains Mono', monospace;">
-          Zero dependencies &nbsp;·&nbsp; 100% local &nbsp;·&nbsp; MIT licensed
+        <div class="check-list">
+          <div class="check-item"><div class="check-dot">✓</div><p>Reads ~/.zsh_history or ~/.bash_history automatically</p></div>
+          <div class="check-item"><div class="check-dot">✓</div><p>Commands sorted by frequency — most-used at the top</p></div>
+          <div class="check-item"><div class="check-dot">✓</div><p>Space to select, Enter to save — fully keyboard-driven</p></div>
+          <div class="check-item"><div class="check-dot">✓</div><p>Go from zero snippets to fully stocked in under 2 minutes</p></div>
+        </div>
+      </div>
+      <div class="terminal on-light" style="border-radius:16px;">
+        <div class="t-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <code>
+          <span class="t-line"><span class="tc">recall import-history</span></span>
+          <span class="t-line"> </span>
+          <span class="t-line"><span class="tg">▸ [✔] </span><span class="tw">kubectl rollout restart deployment/api</span>  <span class="tm">×14</span></span>
+          <span class="t-line"><span class="tm">  [ ] docker compose up -d --build</span>            <span class="tm">×11</span></span>
+          <span class="t-line"><span class="tm">  [ ] terraform plan -out=tfplan</span>              <span class="tm">×9</span></span>
+          <span class="t-line"><span class="tm">  [ ] psql -U admin -d proddb -h localhost</span>    <span class="tm">×8</span></span>
+          <span class="t-line"> </span>
+          <span class="t-line"><span class="ty">3 selected</span> <span class="tm">· Space · Enter save · Esc cancel</span></span>
+        </code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 8 — SEARCH ══ -->
+<div class="slide dark" id="s8">
+  <div class="grid-tex"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">08 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:26px;">
+    <div>
+      <div class="slide-label">Smart Search</div>
+      <div class="dark-headline">Find anything <span class="c">instantly</span></div>
+      <div style="font-size:17px;color:var(--muted);margin-top:8px;">Fuzzy search + filter DSL + frecency ranking — results ranked by usage, not just keyword match.</div>
+    </div>
+    <div class="card-grid-2">
+      <div class="filter-card">
+        <div class="filter-tag">fuzzy</div>
+        <p><strong style="color:#fff;display:block;margin-bottom:4px;">recall find docker restart</strong>Matches snippets containing those words in any order, in command or description.</p>
+      </div>
+      <div class="filter-card">
+        <div class="filter-tag">tag:</div>
+        <p><strong style="color:#fff;display:block;margin-bottom:4px;">recall find tag:aws deploy</strong>Filter to snippets tagged with "aws", then fuzzy-match "deploy" within those.</p>
+      </div>
+      <div class="filter-card">
+        <div class="filter-tag">repo:</div>
+        <p><strong style="color:#fff;display:block;margin-bottom:4px;">recall find repo:payments error</strong>Only snippets saved while working inside the "payments" git repository.</p>
+      </div>
+      <div class="filter-card">
+        <div class="filter-tag">after:</div>
+        <p><strong style="color:#fff;display:block;margin-bottom:4px;">recall find after:7d</strong>Snippets from the last 7 days. Also supports 1h, 30d, and ISO date strings.</p>
+      </div>
+    </div>
+    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:18px 24px;font-size:15px;color:var(--muted);">
+      💡 Filters stack: <strong style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:14px;">recall find tag:k8s repo:payments after:7d deploy</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 9 — WHO IS IT FOR ══ -->
+<div class="slide light" id="s9">
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">09 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="padding:52px 72px;justify-content:center;gap:28px;">
+    <div>
+      <div class="slide-label">Who Is This For</div>
+      <div class="light-headline">Built for <span class="c">terminal people</span></div>
+    </div>
+    <div class="card-grid-2">
+      <div class="persona-card">
+        <div class="persona-icon">🚀</div>
+        <div>
+          <h4>DevOps / SRE</h4>
+          <p>kubectl, terraform, cloud CLIs — one place for your entire runbook. Stop re-typing deployment one-liners across environments.</p>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon">🔧</div>
+        <div>
+          <h4>Backend Devs</h4>
+          <p>DB connections, migrations, port-forward scripts — saved per git repo, found in seconds with fuzzy search.</p>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon">🌿</div>
+        <div>
+          <h4>Git Power Users</h4>
+          <p>Rebase recipes, log formats, stash workflows, bisect scripts — tagged, searchable, always at hand.</p>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon">👥</div>
+        <div>
+          <h4>Team Leads</h4>
+          <p>Export your snippet library as JSON, share with the whole team. Turn your runbook into onboarding docs in one command.</p>
         </div>
       </div>
     </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-    <div class="url-strip">github.com/ramanakellampalli/<span>recall</span></div>
   </div>
+</div>
 
-  <!-- ═══════════════════════════════════════ SLIDE 2 — PROBLEM ═══ -->
-  <div class="slide" id="slide-2">
-    <div class="glow-tl"></div>
-    <div class="glow-tr"></div>
-    <div class="slide-num">02 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">The Problem</div>
-      <h2 class="headline" style="margin-top: 8px;">Sound<br/><em>familiar?</em></h2>
-      <div class="divider"></div>
-
-      <ul class="pain-list">
-        <li>
-          <span class="emoji">😤</span>
-          <span>Googling the same <code style="display:inline; color:var(--cyan); font-family:'JetBrains Mono',monospace; font-size:20px; background:rgba(6,182,212,0.1); padding:2px 10px; border-radius:6px;">kubectl</code> one-liner for the 10th time</span>
-        </li>
-        <li>
-          <span class="emoji">📜</span>
-          <span>Scrolling through <strong style="color:#fff;">3,000 lines</strong> of shell history</span>
-        </li>
-        <li>
-          <span class="emoji">💸</span>
-          <span>Paying for a notes app just to store CLI commands</span>
-        </li>
-        <li>
-          <span class="emoji">🤦</span>
-          <span>Asking a teammate <em style="color:var(--muted); font-style:italic;">"what was that docker cleanup command again?"</em></span>
-        </li>
-      </ul>
+<!-- ══ SLIDE 10 — CTA ══ -->
+<div class="slide dark" id="s10">
+  <div class="grid-tex"></div>
+  <div class="glow" style="width:600px;height:600px;background:radial-gradient(circle,rgba(6,182,212,0.15),transparent 70%);top:-200px;right:-150px;"></div>
+  <div class="glow" style="width:500px;height:500px;background:radial-gradient(circle,rgba(16,185,129,0.12),transparent 70%);bottom:-150px;left:-100px;"></div>
+  <div class="brand-bar">
+    <span class="brand-name"><span class="hi">recall</span>-dev</span>
+    <span class="slide-num">10 / 10</span>
+  </div>
+  <div class="line-top"></div>
+  <div class="line-bot"></div>
+  <div class="content" style="align-items:center;justify-content:center;text-align:center;padding:56px 80px;gap:0;">
+    <div class="cta-mark">re<span class="c">call</span></div>
+    <div class="cta-sub">Your personal command memory for the terminal.</div>
+    <div class="cta-install">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      npm install -g recall-dev
     </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 3 — WHAT IS IT ═══ -->
-  <div class="slide" id="slide-3">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">03 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Solution</div>
-      <h2 class="headline" style="margin-top: 8px;">Meet <span>recall</span></h2>
-      <div class="divider"></div>
-      <h3 class="sub-head">A zero-dependency CLI snippet manager</h3>
-
-      <div class="pillars">
-        <div class="pillar p1">
-          <div class="pillar-icon">💾</div>
-          <div class="pillar-title">Save</div>
-          <div class="pillar-desc">Store any command with tags &amp; descriptions. Captures git context automatically.</div>
-        </div>
-        <div class="pillar p2">
-          <div class="pillar-icon">🔍</div>
-          <div class="pillar-title">Find</div>
-          <div class="pillar-desc">Fuzzy search with frecency ranking. Filter by tag, repo, or time window.</div>
-        </div>
-        <div class="pillar p3">
-          <div class="pillar-icon">▶️</div>
-          <div class="pillar-title">Run</div>
-          <div class="pillar-desc">Execute directly — no copy, no paste. Prompts for placeholders automatically.</div>
-        </div>
+    <div class="cta-div"></div>
+    <div class="cta-links">
+      <div class="cta-link">
+        <span>📦 npm</span>
+        <span class="url">npmjs.com/package/recall-dev</span>
       </div>
-
-      <div style="margin-top: 28px;">
-        <div class="pill pill-green">
-          ~/.recall/snippets.json &nbsp;·&nbsp; 100% local &nbsp;·&nbsp; no cloud
-        </div>
+      <div class="cta-link">
+        <span>🐙 GitHub</span>
+        <span class="url">github.com/ramanakellampalli/recall</span>
       </div>
     </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 4 — INSTALL ═══ -->
-  <div class="slide" id="slide-4">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">04 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Getting Started</div>
-      <h2 class="headline" style="margin-top: 8px;">Get started in<br/><span>10 seconds</span></h2>
-      <div class="divider"></div>
-
-      <div class="code-block" style="margin-top: 32px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-comment"># 1. Install globally</span>
-<span class="c-cmd">npm install -g recall-dev</span>
-
-<span class="c-comment"># 2. Save your first snippet</span>
-<span class="c-cmd">recall save </span><span class="c-str">"docker system prune -af"</span> <span class="c-flag">-t</span> docker <span class="c-flag">-d</span> <span class="c-str">"Nuclear clean"</span>
-
-<span class="c-comment"># 3. Find &amp; run it</span>
-<span class="c-cmd">recall run docker clean</span></code>
-      </div>
-
-      <div class="req-note">Node.js v18 or later required</div>
-
-      <div style="margin-top: 28px; display: flex; gap: 16px;">
-        <div class="pill">recall save</div>
-        <div class="pill">recall find</div>
-        <div class="pill">recall run</div>
-        <div class="pill">recall list</div>
-      </div>
+    <div class="cta-badges">
+      <div class="cta-badge">Zero dependencies</div>
+      <div class="cta-badge">100% local</div>
+      <div class="cta-badge">MIT licensed</div>
+      <div class="cta-badge" style="color:var(--yellow);border-color:rgba(245,158,11,0.3);">⭐ Star on GitHub</div>
     </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
   </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 5 — PLACEHOLDERS ═══ -->
-  <div class="slide" id="slide-5">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">05 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Dynamic Templates</div>
-      <h2 class="headline" style="margin-top: 8px;">Save templates,<br/>not just <span>commands</span></h2>
-      <div class="divider"></div>
-      <h3 class="sub-head" style="margin-top: 4px;">Use <span style="color:var(--cyan); font-family:'JetBrains Mono',monospace;">{placeholders}</span> for dynamic values</h3>
-
-      <div class="code-block" style="margin-top: 28px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-comment"># Save a template once</span>
-<span class="c-cmd">recall save </span><span class="c-str">"kubectl logs {pod} -n {namespace}"</span> <span class="c-flag">-t</span> k8s
-
-<span class="c-comment"># Run it — recall prompts for each variable</span>
-<span class="c-cmd">recall run k8s logs</span>
-<span class="c-muted">  Command: </span><span class="c-white">kubectl logs {pod} -n {namespace}</span>
-
-<span class="c-prompt">  {pod}: </span><span class="c-white">api-7d9f-xk2p</span>
-<span class="c-prompt">  {namespace}: </span><span class="c-white">production</span>
-
-<span class="c-check">  Running: </span><span class="c-white">kubectl logs api-7d9f-xk2p -n production</span></code>
-      </div>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 6 — DANGER ═══ -->
-  <div class="slide" id="slide-6">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">06 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Safety</div>
-      <h2 class="headline" style="margin-top: 8px;">Built-in<br/><span>safety net</span></h2>
-      <div class="divider"></div>
-      <h3 class="sub-head" style="margin-top: 4px;">Destructive commands auto-trigger confirmation</h3>
-
-      <div class="code-block" style="margin-top: 28px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-cmd">recall run docker cleanup</span>
-
-<span class="c-muted">  Command: </span><span class="c-white">docker system prune -af --volumes</span>
-<span class="c-muted">  Nuclear clean Docker</span>
-
-<span class="c-warn">  ⚠  Dangerous command detected. Execute? [y/N]: </span></code>
-      </div>
-
-      <p class="caption" style="margin-top: 24px; font-style: normal;">
-        Detects&nbsp;
-        <code style="display:inline; color:var(--red); font-family:'JetBrains Mono',monospace; background:rgba(244,63,94,0.1); padding:2px 8px; border-radius:4px; font-size:14px;">rm -rf</code>&nbsp;
-        <code style="display:inline; color:var(--red); font-family:'JetBrains Mono',monospace; background:rgba(244,63,94,0.1); padding:2px 8px; border-radius:4px; font-size:14px;">kubectl delete</code>&nbsp;
-        <code style="display:inline; color:var(--red); font-family:'JetBrains Mono',monospace; background:rgba(244,63,94,0.1); padding:2px 8px; border-radius:4px; font-size:14px;">terraform destroy</code>&nbsp;
-        <code style="display:inline; color:var(--red); font-family:'JetBrains Mono',monospace; background:rgba(244,63,94,0.1); padding:2px 8px; border-radius:4px; font-size:14px;">DROP TABLE</code>&nbsp;
-        <code style="display:inline; color:var(--red); font-family:'JetBrains Mono',monospace; background:rgba(244,63,94,0.1); padding:2px 8px; border-radius:4px; font-size:14px;">git push --force</code>&nbsp;and more
-      </p>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 7 — IMPORT ═══ -->
-  <div class="slide" id="slide-7">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">07 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Shell History Import</div>
-      <h2 class="headline" style="margin-top: 8px;">Already have<br/><span>great commands?</span></h2>
-      <div class="divider"></div>
-      <h3 class="sub-head" style="margin-top: 4px;">Import your best ones from shell history</h3>
-
-      <div class="code-block" style="margin-top: 28px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-cmd">recall import-history</span>
-
-<span class="c-check">▸ [✔]</span> <span class="c-white">kubectl rollout restart deployment/api</span>  <span class="c-muted">×14</span>
-<span class="c-muted">  [ ]</span> <span class="c-muted">docker compose up -d --build            ×11</span>
-<span class="c-muted">  [ ]</span> <span class="c-muted">terraform plan -out=tfplan              ×9</span>
-<span class="c-muted">  [ ]</span> <span class="c-muted">psql -U admin -d proddb -h localhost    ×8</span>
-
-<span class="c-prompt">3 selected</span> <span class="c-muted">• Space select • Enter save • Esc cancel</span></code>
-      </div>
-
-      <p class="caption" style="margin-top: 24px;">
-        Reads from ~/.zsh_history or ~/.bash_history — sorted by frequency. Pick the keepers.
-      </p>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 8 — SEARCH ═══ -->
-  <div class="slide" id="slide-8">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">08 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Smart Search</div>
-      <h2 class="headline" style="margin-top: 8px;">Find anything<br/><span>instantly</span></h2>
-      <div class="divider"></div>
-      <h3 class="sub-head" style="margin-top: 4px;">Fuzzy search + filter DSL + frecency ranking</h3>
-
-      <div class="code-block" style="margin-top: 28px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-cmd">recall find docker restart</span>       <span class="c-comment"># fuzzy search</span>
-<span class="c-cmd">recall find </span><span class="c-str">tag:aws</span><span class="c-cmd"> deploy</span>          <span class="c-comment"># filter by tag</span>
-<span class="c-cmd">recall find </span><span class="c-str">repo:payments</span><span class="c-cmd"> error</span>     <span class="c-comment"># filter by git repo</span>
-<span class="c-cmd">recall find </span><span class="c-str">after:1h</span>                  <span class="c-comment"># recent commands</span></code>
-      </div>
-
-      <p class="caption" style="margin-top: 24px; font-style: normal; color: var(--muted);">
-        Results ranked by what you use most, not just keyword match.
-      </p>
-
-      <div style="margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap;">
-        <div class="pill pill-green">tag:&lt;name&gt;</div>
-        <div class="pill pill-green">repo:&lt;name&gt;</div>
-        <div class="pill pill-green">after:1h / 7d</div>
-        <div class="pill pill-green">before:&lt;date&gt;</div>
-      </div>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 9 — WHO ═══ -->
-  <div class="slide" id="slide-9">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">09 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Who Is This For</div>
-      <h2 class="headline" style="margin-top: 8px;">Built for<br/><span>terminal people</span></h2>
-      <div class="divider"></div>
-
-      <div class="persona-grid">
-        <div class="persona-card">
-          <div class="persona-icon">🚀</div>
-          <div>
-            <div class="persona-title">DevOps / SRE</div>
-            <div class="persona-desc">kubectl, terraform, cloud CLIs — one place for your entire runbook</div>
-          </div>
-        </div>
-        <div class="persona-card">
-          <div class="persona-icon">🔧</div>
-          <div>
-            <div class="persona-title">Backend Devs</div>
-            <div class="persona-desc">DB connections, migrations, port scripts — stop re-typing them</div>
-          </div>
-        </div>
-        <div class="persona-card">
-          <div class="persona-icon">🌿</div>
-          <div>
-            <div class="persona-title">Git Power Users</div>
-            <div class="persona-desc">Rebase recipes, log formats, stash workflows — always at hand</div>
-          </div>
-        </div>
-        <div class="persona-card">
-          <div class="persona-icon">👥</div>
-          <div>
-            <div class="persona-title">Team Leads</div>
-            <div class="persona-desc">Export playbooks as JSON, share with the whole team instantly</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SLIDE 10 — CTA ═══ -->
-  <div class="slide" id="slide-10">
-    <div class="glow-tl"></div>
-    <div class="glow-br"></div>
-    <div class="slide-num">10 / 10</div>
-
-    <div class="slide-inner">
-      <div class="label">Get It Now</div>
-      <h2 class="headline" style="margin-top: 8px;">Try it <span>now</span></h2>
-      <div class="divider"></div>
-
-      <div class="code-block" style="margin-top: 28px; font-size: 26px; line-height: 2.2; padding: 40px 48px;">
-        <div class="code-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yel"></span>
-          <span class="dot-grn"></span>
-        </div>
-        <code><span class="c-comment"># install once, remember forever</span>
-<span class="c-cmd">npm install -g recall-dev</span></code>
-      </div>
-
-      <div class="link-row" style="margin-top: 36px;">
-        <div class="link-item">
-          <span class="icon">📦</span>
-          <span>npm:</span>
-          <span class="url">npmjs.com/package/recall-dev</span>
-        </div>
-        <div class="link-item">
-          <span class="icon">🐙</span>
-          <span>GitHub:</span>
-          <span class="url">github.com/ramanakellampalli/recall</span>
-        </div>
-        <div class="link-item" style="margin-top: 4px;">
-          <span class="icon">⭐</span>
-          <span style="color: var(--yellow); font-weight: 700;">Star the repo if you find it useful!</span>
-        </div>
-      </div>
-
-      <div class="cta-tagline" style="margin-top: 36px;">
-        <span>Zero dependencies.</span>
-        <span>100% local.</span>
-        <span>MIT licensed.</span>
-      </div>
-    </div>
-
-    <div class="brand-mark"><span>recall</span>-dev</div>
-  </div>
+</div>
 
 </div><!-- /deck -->
 
 <script>
   const SLIDE_SZ = 1080;
-
   function applyScale() {
     const available = Math.min(window.innerWidth - 40, SLIDE_SZ);
     const scale = available / SLIDE_SZ;
-
-    document.querySelectorAll('.slide-wrapper').forEach(wrapper => {
-      wrapper.style.width  = `${SLIDE_SZ * scale}px`;
-      wrapper.style.height = `${SLIDE_SZ * scale}px`;
+    document.querySelectorAll('.slide-wrapper').forEach(w => {
+      w.style.width  = `${SLIDE_SZ * scale}px`;
+      w.style.height = `${SLIDE_SZ * scale}px`;
     });
-
-    document.querySelectorAll('.slide').forEach(slide => {
-      slide.style.transform = scale < 1 ? `scale(${scale})` : '';
+    document.querySelectorAll('.slide').forEach(s => {
+      s.style.transform = scale < 1 ? `scale(${scale})` : '';
     });
   }
-
-  // Wrap each slide in a .slide-wrapper for scale management
   document.querySelectorAll('.deck > .slide').forEach(slide => {
     const wrapper = document.createElement('div');
     wrapper.className = 'slide-wrapper';
     slide.parentNode.insertBefore(wrapper, slide);
     wrapper.appendChild(slide);
   });
-
   applyScale();
   window.addEventListener('resize', applyScale);
 </script>
-
 </body>
 </html>
