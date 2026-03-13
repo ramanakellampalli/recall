@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { version } = require('./package.json');
+
 import { cmdSave } from './commands/save.js';
 import { cmdFind } from './commands/find.js';
 import { cmdRun } from './commands/run.js';
@@ -47,7 +51,7 @@ async function main() {
   const { command, positional, flags } = parseArgs(process.argv);
 
   if (flags.v || flags.version || command === '--version' || command === '-v') {
-    console.log('recall v1.5.0');
+    console.log(`recall v${version}`);
     return;
   }
 
