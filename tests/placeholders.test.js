@@ -42,23 +42,34 @@ test('extractPlaceholders: ignores empty braces', () => {
 });
 
 // ─── substitutePlaceholder ───────────────────────────────────────
+// Values are shell-quoted to prevent injection (wrapped in single quotes)
 
 test('substitutePlaceholder: replaces all occurrences', () => {
   const result = substitutePlaceholder('ssh {host} && ping {host}', 'host', 'prod.example.com');
-  assert.equal(result, 'ssh prod.example.com && ping prod.example.com');
+  assert.equal(result, "ssh 'prod.example.com' && ping 'prod.example.com'");
 });
 
 test('substitutePlaceholder: replaces single occurrence', () => {
   const result = substitutePlaceholder('kubectl logs {pod} -n production', 'pod', 'api-7d9f');
-  assert.equal(result, 'kubectl logs api-7d9f -n production');
+  assert.equal(result, "kubectl logs 'api-7d9f' -n production");
 });
 
 test('substitutePlaceholder: leaves other placeholders untouched', () => {
   const result = substitutePlaceholder('psql -U {user} -d {db}', 'user', 'admin');
-  assert.equal(result, 'psql -U admin -d {db}');
+  assert.equal(result, "psql -U 'admin' -d {db}");
 });
 
 test('substitutePlaceholder: handles value with spaces', () => {
-  const result = substitutePlaceholder('echo "{message}"', 'message', 'hello world');
-  assert.equal(result, 'echo "hello world"');
+  const result = substitutePlaceholder('echo {message}', 'message', 'hello world');
+  assert.equal(result, "echo 'hello world'");
+});
+
+test('substitutePlaceholder: escapes embedded single quotes to prevent injection', () => {
+  const result = substitutePlaceholder('echo {msg}', 'msg', "it's alive");
+  assert.equal(result, "echo 'it'\\''s alive'");
+});
+
+test('substitutePlaceholder: prevents shell injection via semicolon', () => {
+  const result = substitutePlaceholder('ping {host}', 'host', '; rm -rf ~');
+  assert.equal(result, "ping '; rm -rf ~'");
 });

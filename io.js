@@ -89,9 +89,12 @@ export function importSnippets(file, options = {}) {
 
     if (!dryRun) {
       const newSnippet = {
-        ...snippet,
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        command: snippet.command,
+        description: snippet.description,
+        tags: snippet.tags,
+        context: snippet.context,
         createdAt: snippet.createdAt || new Date().toISOString(),
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
         lastUsedAt: new Date().toISOString(),
         useCount: 0,
         imported: true,

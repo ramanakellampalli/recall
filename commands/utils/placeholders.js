@@ -21,10 +21,18 @@ export function extractPlaceholders(command) {
 }
 
 /**
- * Substitute a single placeholder name with a value throughout the command.
+ * Shell-quote a value so it cannot inject additional shell commands.
+ * Wraps in single quotes and escapes any embedded single quotes.
+ */
+function shellQuote(value) {
+  return "'" + value.replace(/'/g, "'\\''") + "'";
+}
+
+/**
+ * Substitute a single placeholder name with a shell-quoted value throughout the command.
  */
 export function substitutePlaceholder(command, name, value) {
-  return command.replaceAll(`{${name}}`, value);
+  return command.replaceAll(`{${name}}`, shellQuote(value));
 }
 
 /**

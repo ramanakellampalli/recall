@@ -19,7 +19,9 @@ export function captureContext() {
   } catch { /* ignore */ }
 
   try {
-    context.gitRemote = execSync('git remote get-url origin', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const remote = execSync('git remote get-url origin', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    // Strip embedded credentials (e.g. https://token:x-oauth-basic@github.com/...)
+    context.gitRemote = remote.replace(/^(https?:\/\/)[^@]+@/, '$1');
   } catch { /* ignore */ }
 
   return context;
