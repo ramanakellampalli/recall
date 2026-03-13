@@ -18,5 +18,22 @@
   "scripts": {
     "test": "node --test tests/*.test.js"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "files": [
+    "index.js",
+    "store.js",
+    "search.js",
+    "interactive.js",
+    "clipboard.js",
+    "context.js",
+    "io.js",
+    "ui.js",
+    "commands/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
